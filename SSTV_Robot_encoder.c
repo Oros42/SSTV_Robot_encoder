@@ -23,8 +23,9 @@
  * sys	0m0.050s
  * 
  * How to buid :
- * apt-get install gcc libgd-dev
+ * sudo apt-get install gcc libgd-dev
  * gcc SSTV_Robot_encoder.c -o SSTV_Robot_encoder -lgd -lm
+ * chmod u+x SSTV_Robot_encoder
  * 
  * Who to run :
  * ./SSTV_Robot_encoder INPUT_IMAGE [OUTPUT_WAVE [MODE]]
