@@ -189,12 +189,16 @@ int make_sstv_wave(gdImagePtr gd_img, FILE *wav) {
 		subchunk_size = 859200;
 	}
 
-	unsigned char wave_data[subchunk_size];
-	wave_data_ptr = wave_data;
-
 	if (fwrite(&wave_header, 1, 44, wav) != 44) {
 		fprintf(stderr, "\033[31mCan't write header wave file\033[0m\n");
 		return -1;
+	}
+
+	unsigned char wave_data[subchunk_size];
+	wave_data_ptr = wave_data;
+	int i;
+	for(i=0; i<subchunk_size; i++){
+		wave_data[i]=0;
 	}
 
 	/* SSTV header */
@@ -203,7 +207,7 @@ int make_sstv_wave(gdImagePtr gd_img, FILE *wav) {
 	gen_samples(FREQ_VIS_START, MSEC_VIS_START);
 	gen_samples(FREQ_SYNC, MSEC_VIS_BIT);// start bit
 
-	int i, bit, num_ones;
+	int bit, num_ones;
 	bit = num_ones = 0;
 	for(i=0; i<7; i++){
 		bit = (MODE.VIS_CODE >> i) & 1;
@@ -221,6 +225,7 @@ int make_sstv_wave(gdImagePtr gd_img, FILE *wav) {
 	}
 	gen_samples(FREQ_SYNC, MSEC_VIS_BIT); // stop bit
 
+
 	/* image data */
 	float msec_pixel = (float) MODE.SCAN / (float) MODE.WIDTH;
 	int line, col;
@@ -231,8 +236,7 @@ int make_sstv_wave(gdImagePtr gd_img, FILE *wav) {
 		}
 	}
 
-	const size_t n = sizeof wave_data / sizeof wave_data[0];
-	if (fwrite(&wave_data, sizeof wave_header[0], n, wav) != n) {
+	if (fwrite(&wave_data, 1, subchunk_size, wav) != subchunk_size) {
 		fprintf(stderr, "\033[31mCan't write data wave file\033[0m\n");
 		return -1;
 	}
