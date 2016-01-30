@@ -1,10 +1,12 @@
 # SSTV_Robot_encoder
 Simple and fast SSTV encoder for Robot8BW and Robot24BW.
 
-
 Beacause pySSTV* is realy to slow on a Raspberry-Pi B, I rewrite it in C :-D  
 \* pySSTV : https://github.com/dnet/pySSTV  
   
+This program convert an image (jpeg, png, gif or bmp) to an SSTV wav file.  
+You can decode the wav file with QSSTV (http://users.telenet.be/on4qz/).  
+
 
 Benchmark on a Raspberry-Pi B
 -----------------------------
