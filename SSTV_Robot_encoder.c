@@ -55,6 +55,7 @@ const double FACTOR = 0.0001308996938995747; // 2 * 3.141592653589793 / SAMPLES_
 const int LOWEST = -32768; // = - 2 ** 16 // 2
 const int HIGHEST = 32767; // = 2 ** 16 // 2 -17
 
+// FREQ in Hz
 const int FREQ_SYNC = 1200;
 const int FREQ_VIS_START = 1900;
 const int FREQ_VIS_BIT0 = 1300;
@@ -154,39 +155,43 @@ void gen_samples(int freq, float msec) {
 
 int make_sstv_wave(gdImagePtr gd_img, FILE *wav) {
 	unsigned char wave_header[44] = {
-		/* chunk descriptor */
-		0x52, 0x49, 0x46, 0x46, /* RIFF */
-		0x64, 0x1C, 0x0D, 0x00, /* chunk size : 859236 (Robot8BW) */
-		0x57, 0x41, 0x56, 0x45, /* WAVE */
+		/* chunk descriptor (0-12) */
+		0x52, 0x49, 0x46, 0x46, /* (0-3) RIFF */
+		0x64, 0x1C, 0x0D, 0x00, /* (4-7) chunk size : 859236 (0D1C64) (Robot8BW) */
+		0x57, 0x41, 0x56, 0x45, /* (8-11) WAVE */
 
-		/* fmt subchunk */
-		0x66, 0x6D, 0x74, 0x20, /* fmt  */
-		0x10, 0x00, 0x00, 0x00, /* subchunk 1 size : 16 */
-		0x01, 0x00, 			/* audio format : 1 */
-		0x01, 0x00, 			/* num channels : 1*/
-		0x80, 0xBB, 0x00, 0x00, /* sample rate : 48000 */
-		0x00, 0x77, 0x01, 0x00, /* byte rate : 96000 */
-		0x02, 0x00, 			/* block align : 2 */
-		0x10, 0x00, 			/* bits per sample : 16*/
+		/* fmt subchunk (12-35) */
+		0x66, 0x6D, 0x74, 0x20, /* (12-15) fmt  */
+		0x10, 0x00, 0x00, 0x00, /* (16-19) subchunk 1 size : 16 */
+		0x01, 0x00, 			/* (20-21) audio format : 1 */
+		0x01, 0x00, 			/* (22-23) num channels : 1*/
+		0x80, 0xBB, 0x00, 0x00, /* (24-27) sample rate : 48000 */
+		0x00, 0x77, 0x01, 0x00, /* (28-31) byte rate : 96000 */
+		0x02, 0x00, 			/* (32-33) block align : 2 */
+		0x10, 0x00, 			/* (34-35) bits per sample : 16*/
 
-		/* data subchunk */
-		0x64, 0x61, 0x74, 0x61, /* data */
-		0x40, 0x1C, 0x0D, 0x00  /* subchunk 2 size : 859200 (Robot8BW) */
+		/* data subchunk (36-43) */
+		0x64, 0x61, 0x74, 0x61, /* (36-39) data */
+		0x40, 0x1C, 0x0D, 0x00  /* (40-43) subchunk 2 size : 859200 (0D1C40) (Robot8BW) */
 	};
 	int subchunk_size;
 	if(MODE.NAME == 24) {
 		/* Robot24BW */
-		/* chunk size : 2391396 */ 
-		wave_header[5] = 0x7D;
+		/* chunk size : 2399076 (249B64) */
+		/* change (4-7) : 0x64 (4), 0x1C (5), 0x0D (6), 0x00 (7) */
+		wave_header[4] = 0x64;
+		wave_header[5] = 0x9B;
 		wave_header[6] = 0x24;
 
-		/* subchunk 2 size : 2391360 */
-		wave_header[41] = 0x7D;
-		wave_header[42] = 0x24;
-		subchunk_size = 2391360;
+		/* subchunk 2 size : 2399040 (249B40) */
+		/* change (40-43) : 0x40 (40), 0x1C (41), 0x0D (42), 0x00 (43) */
+		//wave_header[41] = 0x40;
+		wave_header[42] = 0x9B;
+		wave_header[43] = 0x24;
+		subchunk_size = 2399040; // chunk size - 36
 	}else{
 		/* Robot8BW */
-		subchunk_size = 859200;
+		subchunk_size = 859200; // chunk size - 36
 	}
 
 	if (fwrite(&wave_header, 1, 44, wav) != 44) {
@@ -252,7 +257,7 @@ int main(int argc, char *argv[]) {
 
 	/* set name of output wave */
 	const char * output_wave;
-	if(argc == 3) {
+	if(argc >= 3) {
 		output_wave = argv[2];
 	}else{
 		output_wave = "sstv_robot_8BW.wav";
